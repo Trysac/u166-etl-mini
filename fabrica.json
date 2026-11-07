@@ -1,0 +1,1 @@
+{"lang": "python", "package": "trysac-etl-mini", "commands": {"install": [["uv", "sync"]], "check": [["uv", "run", "python", "scripts/check.py"]]}}
