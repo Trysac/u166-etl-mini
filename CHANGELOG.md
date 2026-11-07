@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Implement declarative ETL pipeline engine with built-in transforms, retries, and lineage fingerprinting.
 - Initial project structure from the factory utility template.

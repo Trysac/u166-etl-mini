@@ -1,29 +1,18 @@
 # Architecture
 
-## Purpose
+`trysac-etl-mini` provides a single-process engine for executing ETL pipelines defined as Directed Acyclic Graphs (DAGs).
 
-`trysac-etl-mini` is a small, dependency-free Python library: Declarative in-process ETL: a JSON pipeline of named steps forming a DAG, four built-in transforms, typed retries with injected sleep, and per-step lineage with row fingerprints
+## Data Flow
+1. **Validation**: The `Pipeline` class validates the spec for structure, duplicate IDs, cycle detection, and unknown inputs/steps.
+2. **Ordering**: Topological sorting uses Kahn's algorithm, with ties resolved by declaration order.
+3. **Execution**: The `run` function processes steps sequentially. 
+   - Inputs are deep-copied (`copy.deepcopy`) to prevent mutation.
+   - Steps run in isolation; failures skip descendants.
+   - Retries trigger after `TransientError` with backoff `backoff_s * 2^(attempt-1)`.
+4. **Observability**: Lineage is recorded via `RunReport`, containing `StepRun` entries with SHA-256 row fingerprints and execution timestamps.
 
-## Shape
-
-```text
-caller code --> etl_mini (public API in __init__.py)
-                    |
-                    +-- pure functions, no I/O, no global state
-```
-
-- **Public API**: the names listed in `__all__` of `src/etl_mini/__init__.py`. Anything else is
-  internal and may change without a major version.
-- **Errors**: invalid input raises built-in exceptions (`ValueError`, `TypeError`) with a clear
-  message; the library never prints or exits.
-- **Side effects**: none. If a feature needs I/O, isolate it in its own module behind a small
-  interface and record the choice in an ADR.
-
-## Quality contract
-
-`scripts/check.py` is the single definition of the gates; `fabrica.json` tells the factory and CI
-how to run it. See [TESTING.md](TESTING.md).
-
-## Decisions
-
-Architecture decisions are recorded in [decisions/](decisions/) as numbered ADRs.
+## Built-in Steps
+- `filter`: Keeps rows where `row[field] == equals`.
+- `select`: Keeps specific fields and applies renaming.
+- `dedupe`: Removes rows based on key fields.
+- `union`: Concatenates all input lists.
