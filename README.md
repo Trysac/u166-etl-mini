@@ -1,48 +1,38 @@
-# etl-mini
+# trysac-etl-mini
 
-[![PyPI version](https://img.shields.io/pypi/v/trysac-etl-mini)](https://pypi.org/project/trysac-etl-mini/)
-[![License: MIT](https://img.shields.io/pypi/l/trysac-etl-mini)](LICENSE)
-[![CI](https://github.com/Trysac/u166-etl-mini/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u166-etl-mini/actions/workflows/ci.yml)
-
-Declarative in-process ETL: a JSON pipeline of named steps forming a DAG, four built-in transforms, typed retries with injected sleep, and per-step lineage with row fingerprints
+Declarative in-process ETL: a JSON pipeline of named steps forming a DAG, four built-in transforms, typed retries with injected sleep, and per-step lineage with row fingerprints.
 
 ## Problem
+Small data jobs grow from one script into a tangle of functions with ad hoc retries and no record of which input produced which output. Established orchestrators like Airflow or Dagster introduce heavy infrastructure overhead unsuitable for jobs that fit in memory.
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and what
-they do today without it. Replace this paragraph when the first real feature lands.
-
-## Install
-
-```sh
+## Installation
+```bash
 pip install trysac-etl-mini
-# or
-uv add trysac-etl-mini
 ```
-
-Requires Python 3.10 or newer. No runtime dependencies.
 
 ## Usage
-
 ```python
-import etl_mini
+from etl_mini import Pipeline, Registry, run
 
-# normalize() trims surrounding whitespace and lower-cases the text.
-print(etl_mini.normalize("  Hello World "))  # -> "hello world"
+registry = Registry()
+registry.register("source", lambda inps, p: [{"id": 1, "val": 10}])
 
-# Blank input is rejected explicitly instead of returning an empty string.
-try:
-    etl_mini.normalize("   ")
-except ValueError as exc:
-    print(f"rejected: {exc}")
+spec = {"name": "demo", "steps": [{"id": "start", "use": "source"}]}
+pipeline = Pipeline.from_dict(spec, registry)
+report = run(pipeline)
+
+print(report.status)  # "ok"
 ```
 
-## Documentation
+## Public API Summary
+- **Exceptions**: `EtlError` (pipeline/graph errors), `TransientError` (triggers retry).
+- **Registry**: `Registry()` with `register(name: str, fn: StepFn)`.
+- **Execution**: `run(pipeline, *, clock=..., sleep=..., on_event=...)`.
+- **Limits**: Maximum 50 steps per pipeline; maximum 100,000 rows per step output; retry limit of 5 attempts.
+- **Options**: `clock` (defaults to UTC now), `sleep` (defaults to `time.sleep`), `on_event` (hook for step telemetry).
 
-- [Architecture](docs/ARCHITECTURE.md) and [decisions](docs/decisions/)
-- [Testing](docs/TESTING.md) and [security](docs/SECURITY.md)
-- [Project record](docs/PROJECT.md) and [stack](docs/STACK.md)
-- [Changelog](CHANGELOG.md) and [contributing guide](CONTRIBUTING.md)
+## Why not Airflow/Dagster?
+Airflow and Dagster require external servers, schedulers, and databases. `etl-mini` provides deterministic order and lineage for single-process jobs without these dependencies.
 
-## License
-
-[MIT](LICENSE) (c) 2026 Miguel Gomez
+## Security
+See [docs/SECURITY.md](docs/SECURITY.md) for the threat model and isolation guarantees.

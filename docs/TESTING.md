@@ -1,20 +1,9 @@
-# Testing
+# Testing Strategy
 
-## Running
+The test suite located in `tests/` covers logical correctness, graph invariants, and edge cases.
 
-```sh
-uv run pytest --cov=etl_mini   # tests with coverage report
-uv run python scripts/check.py      # every gate, as CI and the factory run it
-```
-
-## Policy
-
-- Branch coverage of `src/etl_mini` must stay at or above 80 %; the gate fails below it.
-- Tests exercise the public API (`import etl_mini`) and assert every observable effect:
-  return values, raised exceptions and their messages.
-- Each bug fix starts with a failing test that reproduces it.
-- Tests are deterministic: no network, no wall clock, no dependence on test order.
-
-## Layout
-
-`tests/test_<module>.py` mirrors each public module. Shared fixtures go in `tests/conftest.py`.
+- **Acceptance Tests**: A comprehensive suite verifying all 10 defined acceptance items (pipelines, cycles, retries, fingerprint generation).
+- **Cycle Detection**: Specific tests for Kahn's algorithm cycle detection and error path reporting.
+- **Fingerprint Determinism**: Validation of SHA-256 outputs against fixed inputs.
+- **Step Validation**: Tests for invalid outputs, row limits (100,000), and invalid JSON types.
+- **Failure Isolation**: Verification that step mutations do not affect siblings and that failed steps prevent execution of downstream dependencies.

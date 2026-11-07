@@ -19,6 +19,9 @@ classifiers = [
 ]
 dependencies = []
 
+[project.scripts]
+etl-mini = "etl_mini.__main__:main"
+
 [project.urls]
 Homepage = "https://github.com/Trysac/u166-etl-mini"
 Source = "https://github.com/Trysac/u166-etl-mini"
