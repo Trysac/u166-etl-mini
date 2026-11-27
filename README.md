@@ -6,8 +6,10 @@ Declarative in-process ETL: a JSON pipeline of named steps forming a DAG, four b
 Small data jobs grow from one script into a tangle of functions with ad hoc retries and no record of which input produced which output. Established orchestrators like Airflow or Dagster introduce heavy infrastructure overhead unsuitable for jobs that fit in memory.
 
 ## Installation
+
+Not published to PyPI yet. Install it from GitHub:
 ```bash
-pip install trysac-etl-mini
+pip install "git+https://github.com/Trysac/u166-etl-mini"
 ```
 
 ## Usage
